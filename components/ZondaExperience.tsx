@@ -9,8 +9,6 @@ import {
   Flame,
   ArrowRight,
   Shield,
-  Activity,
-  Layers,
   Wind,
 } from "lucide-react";
 
@@ -23,7 +21,7 @@ export default function ZondaExperience({
   scrollYProgress,
   onInquireClick,
 }: ZondaExperienceProps) {
-  // Spring-smoothed scroll progress to guarantee silky, non-stuttering transitions
+  // Spring-smoothed scroll progress for buttery, fluid phase transitions
   const smoothProgress = useSpring(scrollYProgress, {
     stiffness: 90,
     damping: 26,
@@ -33,8 +31,7 @@ export default function ZondaExperience({
 
   // Phase 1 (Hero / Overview): 0% to ~32%
   const heroOpacity = useTransform(smoothProgress, [0, 0.22, 0.32], [1, 1, 0]);
-  const heroY = useTransform(smoothProgress, [0, 0.32], [0, -30]);
-  const heroScale = useTransform(smoothProgress, [0, 0.32], [1, 0.96]);
+  const heroY = useTransform(smoothProgress, [0, 0.32], [0, -25]);
 
   // Phase 2 (Design & ALA): ~33% to ~65%
   const designOpacity = useTransform(
@@ -45,7 +42,7 @@ export default function ZondaExperience({
   const designY = useTransform(
     smoothProgress,
     [0.30, 0.38, 0.60, 0.67],
-    [30, 0, 0, -30]
+    [25, 0, 0, -25]
   );
 
   // Phase 3 (Engine & Specs): ~66% to 100%
@@ -57,7 +54,7 @@ export default function ZondaExperience({
   const engineY = useTransform(
     smoothProgress,
     [0.65, 0.73],
-    [30, 0]
+    [25, 0]
   );
 
   // Live dynamic telemetry gauges driven by smooth progress
@@ -84,7 +81,7 @@ export default function ZondaExperience({
   };
 
   return (
-    <div className="absolute inset-0 pointer-events-none select-none z-10 flex flex-col justify-between p-3 sm:p-6 md:p-8 overflow-hidden">
+    <div className="absolute inset-0 pointer-events-none select-none z-10 flex flex-col justify-between p-4 sm:p-6 md:p-8 overflow-hidden">
       {/* Sci-Fi HUD Corner Brackets */}
       <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-[#D4AF37]/50" />
       <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-[#D4AF37]/50" />
@@ -96,19 +93,19 @@ export default function ZondaExperience({
       {/* ============================================================== */}
       <header className="w-full flex items-center justify-between pt-14 sm:pt-16 max-w-7xl mx-auto px-2">
         <div className="flex items-center gap-3">
-          <div className="px-3 py-1 border border-[#D4AF37]/40 bg-[#141414]/85 backdrop-blur-md rounded-[2px] flex items-center gap-2">
+          <div className="px-3 py-1 border border-[#D4AF37]/40 bg-black/50 backdrop-blur-md rounded-[2px] flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
             <span className="font-rajdhani text-[11px] sm:text-xs tracking-[0.2em] text-[#D4AF37] uppercase font-bold">
               360° TELEMETRY SCAN
             </span>
           </div>
-          <span className="hidden md:inline-block font-mono text-[10px] text-zinc-400">
-            SANT&apos;AGATA BOLOGNESE
+          <span className="hidden md:inline-block font-mono text-[10px] text-zinc-400 drop-shadow-md">
+            SANT&apos;AGATA BOLOGNESE • 44.66°N, 11.12°E
           </span>
         </div>
 
         {/* Phase Indicator tracker */}
-        <div className="flex items-center gap-2 sm:gap-3 bg-[#141414]/85 border border-white/10 px-3 py-1.5 rounded-[2px] backdrop-blur-md">
+        <div className="flex items-center gap-2 sm:gap-3 bg-black/60 border border-white/10 px-3 py-1.5 rounded-[2px] backdrop-blur-md">
           <motion.div
             className="flex items-center gap-1 font-orbitron text-[10px] sm:text-xs tracking-wider"
             style={{
@@ -154,75 +151,74 @@ export default function ZondaExperience({
       </header>
 
       {/* ============================================================== */}
-      {/* CENTER HUD ZONE: Bounded, Floating Glass Panels (Zero Overlap) */}
+      {/* CENTER HUD ZONE: Completely Transparent, Non-Obstructive HUD  */}
+      {/* The car is 100% visible in full glory without any solid boxes  */}
       {/* ============================================================== */}
-      <div className="relative w-full max-w-7xl mx-auto flex-1 flex items-center px-2 py-4">
+      <div className="relative w-full max-w-7xl mx-auto flex-1 flex flex-col justify-center px-2 py-2">
         {/* ------------------------------------------------------------ */}
-        {/* PHASE 1: HERO OVERVIEW (Self-contained, Left-aligned Box)    */}
+        {/* PHASE 1: HERO OVERVIEW (Clean Floating Typography)           */}
         {/* ------------------------------------------------------------ */}
         <motion.div
           style={{
             opacity: heroOpacity,
             y: heroY,
-            scale: heroScale,
             display: useTransform(smoothProgress, (v) => (v < 0.35 ? "block" : "none")),
           }}
-          className="max-w-lg md:max-w-xl bg-[#141414]/85 border border-[#D4AF37]/35 backdrop-blur-xl p-5 sm:p-7 rounded-[3px] shadow-[0_10px_40px_rgba(0,0,0,0.8)] pointer-events-auto"
+          className="pointer-events-auto max-w-xl"
         >
           {/* Phase Tag */}
           <div className="flex items-center gap-2 mb-2">
-            <span className="h-[2px] w-5 bg-[#D4AF37]" />
-            <span className="font-rajdhani text-[11px] sm:text-xs font-bold tracking-[0.25em] text-[#D4AF37] uppercase">
+            <span className="h-[2px] w-6 bg-[#D4AF37]" />
+            <span className="font-rajdhani text-xs sm:text-sm font-bold tracking-[0.3em] text-[#D4AF37] uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
               PHASE 01 // OVERVIEW
             </span>
           </div>
 
-          {/* Model Title */}
-          <h1 className="font-orbitron text-2xl sm:text-4xl md:text-5xl font-black tracking-wider text-white uppercase leading-tight gold-text-glow">
+          {/* Model Title: Clean, sharp, unblocked */}
+          <h1 className="font-orbitron text-3xl sm:text-5xl md:text-6xl font-black tracking-wider text-white uppercase leading-none drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
             LAMBORGHINI <br />
-            <span className="text-[#FFD700]">HURACÁN</span>
+            <span className="text-[#FFD700] gold-text-glow">HURACÁN</span>
           </h1>
 
-          <p className="mt-2 text-xs sm:text-sm font-rajdhani tracking-wider text-zinc-300 uppercase leading-relaxed font-medium">
-            Naturally Aspirated V10 • LP 640-4 Performante Edition.
-            Engineered to slice through turbulence with extreme aerodynamic downforce.
+          <p className="mt-3 text-xs sm:text-sm font-rajdhani tracking-widest text-zinc-300 uppercase leading-relaxed font-semibold max-w-md drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)]">
+            LP 640-4 PERFORMANTE • 5.2L NATURALLY ASPIRATED V10 • AERODINAMICA ATTIVA
           </p>
 
-          {/* Clean Metric Row inside the bounded card */}
-          <div className="mt-5 grid grid-cols-3 gap-2 py-3 border-y border-white/10">
-            <div className="border-l-2 border-[#D4AF37] pl-2.5">
+          {/* Transparent Minimalist Telemetry Pill Row */}
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <div className="border-l-2 border-[#D4AF37] pl-3 py-1 bg-black/40 backdrop-blur-sm pr-4 rounded-r-[2px] shadow-lg">
               <span className="block text-[9px] font-mono tracking-widest text-zinc-400 uppercase">
                 STARTING MSRP
               </span>
-              <span className="font-orbitron text-sm sm:text-base md:text-lg font-bold text-[#FFD700]">
+              <span className="font-orbitron text-base sm:text-lg font-bold text-[#FFD700]">
                 $261,274
               </span>
             </div>
 
-            <div className="border-l-2 border-white/20 pl-2.5">
+            <div className="border-l-2 border-white/40 pl-3 py-1 bg-black/40 backdrop-blur-sm pr-4 rounded-r-[2px] shadow-lg">
               <span className="block text-[9px] font-mono tracking-widest text-zinc-400 uppercase">
                 MAX POWER
               </span>
-              <span className="font-orbitron text-sm sm:text-base md:text-lg font-bold text-white">
+              <span className="font-orbitron text-base sm:text-lg font-bold text-white">
                 640 CV
               </span>
             </div>
 
-            <div className="border-l-2 border-white/20 pl-2.5">
+            <div className="border-l-2 border-white/40 pl-3 py-1 bg-black/40 backdrop-blur-sm pr-4 rounded-r-[2px] shadow-lg">
               <span className="block text-[9px] font-mono tracking-widest text-zinc-400 uppercase">
                 0-100 KM/H
               </span>
-              <span className="font-orbitron text-sm sm:text-base md:text-lg font-bold text-white">
+              <span className="font-orbitron text-base sm:text-lg font-bold text-white">
                 2.9s
               </span>
             </div>
           </div>
 
-          {/* CTA Action Buttons */}
-          <div className="mt-5 flex items-center gap-3">
+          {/* Action Buttons */}
+          <div className="mt-6 flex items-center gap-3">
             <button
               onClick={handleInquire}
-              className="px-5 py-2.5 bg-[#D4AF37] hover:bg-[#FFD700] text-black font-orbitron font-bold text-xs tracking-[0.18em] uppercase transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.4)] flex items-center gap-2 cursor-pointer rounded-[2px]"
+              className="px-6 py-2.5 bg-[#D4AF37] hover:bg-[#FFD700] text-black font-orbitron font-bold text-xs tracking-[0.2em] uppercase transition-all duration-300 shadow-[0_0_25px_rgba(212,175,55,0.5)] flex items-center gap-2 cursor-pointer rounded-[2px]"
             >
               <span>INQUIRE NOW</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -230,7 +226,7 @@ export default function ZondaExperience({
 
             <button
               onClick={handleScrollToRest}
-              className="px-4 py-2.5 border border-white/20 hover:border-[#D4AF37] bg-[#1a1a1a]/70 hover:bg-[#2a2a2a] text-white font-rajdhani font-semibold text-xs tracking-[0.18em] uppercase transition-all cursor-pointer rounded-[2px]"
+              className="px-5 py-2.5 border border-white/30 hover:border-[#D4AF37] bg-black/50 hover:bg-black/80 backdrop-blur-sm text-white font-rajdhani font-semibold text-xs tracking-[0.2em] uppercase transition-all cursor-pointer rounded-[2px]"
             >
               EXPLORE SPECS
             </button>
@@ -238,64 +234,64 @@ export default function ZondaExperience({
         </motion.div>
 
         {/* ------------------------------------------------------------ */}
-        {/* PHASE 2: DESIGN & ALA AERODYNAMICS                           */}
+        {/* PHASE 2: DESIGN & ALA AERODYNAMICS (Unobstructed Layout)     */}
         {/* ------------------------------------------------------------ */}
         <motion.div
           style={{
             opacity: designOpacity,
             y: designY,
             display: useTransform(smoothProgress, (v) =>
-              v >= 0.28 && v <= 0.7 ? "block" : "none"
+              v >= 0.28 && v <= 0.7 ? "flex" : "none"
             ),
           }}
           className="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
         >
-          {/* Left Card: Aerodynamics philosophy */}
-          <div className="max-w-md bg-[#141414]/85 border border-[#D4AF37]/35 backdrop-blur-xl p-5 sm:p-7 rounded-[3px] shadow-[0_10px_40px_rgba(0,0,0,0.8)] pointer-events-auto">
+          {/* Left Title: Transparent floating text */}
+          <div className="max-w-md pointer-events-auto">
             <div className="flex items-center gap-2 mb-2">
-              <span className="h-[2px] w-5 bg-[#D4AF37]" />
-              <span className="font-rajdhani text-[11px] sm:text-xs font-bold tracking-[0.25em] text-[#D4AF37] uppercase">
+              <span className="h-[2px] w-6 bg-[#D4AF37]" />
+              <span className="font-rajdhani text-xs sm:text-sm font-bold tracking-[0.3em] text-[#D4AF37] uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
                 PHASE 02 // CHASSIS &amp; AERODYNAMICS
               </span>
             </div>
 
-            <h2 className="font-orbitron text-xl sm:text-3xl font-black tracking-wider text-white uppercase leading-tight gold-text-glow">
+            <h2 className="font-orbitron text-2xl sm:text-4xl font-black tracking-wider text-white uppercase leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
               FORGED COMPOSITES® <br />
-              <span className="text-[#FFD700]">&amp; ACTIVE ALA</span>
+              <span className="text-[#FFD700] gold-text-glow">&amp; ACTIVE ALA</span>
             </h2>
 
-            <p className="mt-2 text-xs font-rajdhani tracking-wider text-zinc-300 uppercase leading-relaxed font-medium">
-              Aerodinamica Lamborghini Attiva dynamically adapts downforce and drag in under 500ms using electronically actuated carbon micro-flaps.
+            <p className="mt-3 text-xs sm:text-sm font-rajdhani tracking-widest text-zinc-300 uppercase leading-relaxed font-semibold max-w-md drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)]">
+              Aerodinamica Lamborghini Attiva dynamically adapts downforce and drag in under 500ms using active aerodynamic vectoring.
             </p>
 
-            <div className="mt-4 pt-3 border-t border-white/10 space-y-1.5 text-xs font-rajdhani tracking-wider text-zinc-400">
+            <div className="mt-4 space-y-2 text-xs font-rajdhani tracking-wider text-zinc-300 drop-shadow-md">
               <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-[#D4AF37] rotate-45" />
-                <span>Hexagonal aeronautical stealth bodywork</span>
+                <span className="w-1.5 h-1.5 bg-[#D4AF37] rotate-45 shrink-0" />
+                <span>Hexagonal aeronautical stealth carbon bodywork</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-[#D4AF37] rotate-45" />
+                <span className="w-1.5 h-1.5 bg-[#D4AF37] rotate-45 shrink-0" />
                 <span>Internal active air channels inside rear wing</span>
               </div>
             </div>
           </div>
 
-          {/* Right Card: Telemetry Numbers */}
-          <div className="w-full md:w-72 space-y-2.5 pointer-events-auto">
+          {/* Right Metrics: Slim floating telemetry tags */}
+          <div className="w-full md:w-64 space-y-2 pointer-events-auto">
             {carData.phases.design.metrics.map((metric, i) => (
               <div
                 key={i}
-                className="p-3 bg-[#141414]/85 border border-[#D4AF37]/30 backdrop-blur-md rounded-[2px]"
+                className="p-2.5 bg-black/50 border-l-2 border-[#D4AF37] backdrop-blur-md rounded-r-[2px] shadow-lg"
               >
                 <div className="flex justify-between items-baseline">
                   <span className="font-rajdhani text-[10px] tracking-widest text-zinc-400 uppercase">
                     {metric.label}
                   </span>
-                  <span className="font-orbitron text-base font-bold text-[#FFD700]">
-                    {metric.value} {metric.unit && <span className="text-xs text-white">{metric.unit}</span>}
+                  <span className="font-orbitron text-sm font-bold text-[#FFD700]">
+                    {metric.value} {metric.unit && <span className="text-[10px] text-white">{metric.unit}</span>}
                   </span>
                 </div>
-                <div className="text-[9px] font-mono tracking-wider text-zinc-500 uppercase mt-0.5">
+                <div className="text-[9px] font-mono tracking-wider text-zinc-400 uppercase mt-0.5">
                   {metric.detail}
                 </div>
               </div>
@@ -304,36 +300,36 @@ export default function ZondaExperience({
         </motion.div>
 
         {/* ------------------------------------------------------------ */}
-        {/* PHASE 3: V10 ENGINE & POWERTRAIN BENCHMARK                   */}
+        {/* PHASE 3: V10 ENGINE & POWERTRAIN (Unobstructed Layout)       */}
         {/* ------------------------------------------------------------ */}
         <motion.div
           style={{
             opacity: engineOpacity,
             y: engineY,
-            display: useTransform(smoothProgress, (v) => (v >= 0.63 ? "block" : "none")),
+            display: useTransform(smoothProgress, (v) => (v >= 0.63 ? "flex" : "none")),
           }}
           className="w-full flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6"
         >
-          {/* Left Card: V10 Powerplant */}
-          <div className="max-w-md bg-[#141414]/85 border border-[#D4AF37]/35 backdrop-blur-xl p-5 sm:p-7 rounded-[3px] shadow-[0_10px_40px_rgba(0,0,0,0.8)] pointer-events-auto">
+          {/* Left Title: Transparent floating text */}
+          <div className="max-w-md pointer-events-auto">
             <div className="flex items-center gap-2 mb-2">
-              <span className="h-[2px] w-5 bg-[#D4AF37]" />
-              <span className="font-rajdhani text-[11px] sm:text-xs font-bold tracking-[0.25em] text-[#D4AF37] uppercase">
+              <span className="h-[2px] w-6 bg-[#D4AF37]" />
+              <span className="font-rajdhani text-xs sm:text-sm font-bold tracking-[0.3em] text-[#D4AF37] uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
                 PHASE 03 // V10 POWERPLANT
               </span>
             </div>
 
-            <h2 className="font-orbitron text-xl sm:text-3xl font-black tracking-wider text-white uppercase leading-tight gold-text-glow">
+            <h2 className="font-orbitron text-2xl sm:text-4xl font-black tracking-wider text-white uppercase leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
               5.2L NATURALLY <br />
-              <span className="text-[#FFD700]">ASPIRATED V10</span>
+              <span className="text-[#FFD700] gold-text-glow">ASPIRATED V10</span>
             </h2>
 
-            <p className="mt-2 text-xs font-rajdhani tracking-wider text-zinc-300 uppercase leading-relaxed font-medium">
-              8,500 RPM of acoustic purity. Titanium intake valves, dry-sump lubrication, and 7-speed dual-clutch transmission.
+            <p className="mt-3 text-xs sm:text-sm font-rajdhani tracking-widest text-zinc-300 uppercase leading-relaxed font-semibold max-w-md drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)]">
+              8,500 RPM of acoustic Italian fury. Titanium intake valves, dry-sump lubrication, and 7-speed dual-clutch transmission.
             </p>
 
-            <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
-              <div className="flex items-center gap-2">
+            <div className="mt-4 flex items-center gap-4">
+              <div className="flex items-center gap-2 p-2 bg-black/50 border-l-2 border-[#D4AF37] backdrop-blur-sm rounded-r-[2px]">
                 <Flame className="w-4 h-4 text-[#FFD700]" />
                 <span className="font-orbitron text-xs font-bold text-white">
                   640 CV @ 8,000 RPM
@@ -341,26 +337,26 @@ export default function ZondaExperience({
               </div>
               <button
                 onClick={handleInquire}
-                className="text-xs font-orbitron text-[#D4AF37] hover:text-[#FFD700] tracking-wider uppercase flex items-center gap-1 cursor-pointer"
+                className="text-xs font-orbitron text-[#D4AF37] hover:text-[#FFD700] tracking-wider uppercase flex items-center gap-1 cursor-pointer drop-shadow-md"
               >
-                <span>INQUIRE</span>
+                <span>INQUIRE ALLOCATION</span>
                 <ArrowRight className="w-3 h-3" />
               </button>
             </div>
           </div>
 
-          {/* Right Card: Precision Specs Grid */}
-          <div className="w-full lg:w-[440px] bg-[#141414]/85 border border-[#D4AF37]/35 backdrop-blur-md p-4 sm:p-5 rounded-[3px] shadow-2xl pointer-events-auto">
-            <div className="flex items-center justify-between pb-2.5 border-b border-white/10 mb-3">
-              <span className="font-orbitron text-xs tracking-widest text-[#FFD700] uppercase font-bold flex items-center gap-1.5">
+          {/* Right Metrics: Slim floating telemetry grid */}
+          <div className="w-full lg:w-[380px] bg-black/50 border border-white/15 backdrop-blur-md p-3.5 rounded-[2px] shadow-2xl pointer-events-auto">
+            <div className="flex items-center justify-between pb-2 border-b border-white/10 mb-2.5">
+              <span className="font-orbitron text-[11px] tracking-widest text-[#FFD700] uppercase font-bold flex items-center gap-1.5">
                 <Gauge className="w-3.5 h-3.5 text-[#FFD700]" />
-                BENCHMARK TELEMETRY
+                V10 BENCHMARK TELEMETRY
               </span>
-              <span className="font-mono text-[9px] text-zinc-400">CORSA CALIBRATION</span>
+              <span className="font-mono text-[9px] text-zinc-400">CORSA PROFILE</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="p-2 bg-[#222222]/60 border-l-2 border-[#D4AF37]">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="p-2 bg-black/40 border-l-2 border-[#D4AF37]">
                 <span className="text-[9px] font-rajdhani tracking-widest text-zinc-400 uppercase block">
                   TOP SPEED
                 </span>
@@ -369,16 +365,16 @@ export default function ZondaExperience({
                 </span>
               </div>
 
-              <div className="p-2 bg-[#222222]/60 border-l-2 border-[#D4AF37]">
+              <div className="p-2 bg-black/40 border-l-2 border-[#D4AF37]">
                 <span className="text-[9px] font-rajdhani tracking-widest text-zinc-400 uppercase block">
                   MAX TORQUE
                 </span>
                 <span className="font-orbitron text-sm font-bold text-white">
-                  600 NM @ 6,500 RPM
+                  600 NM @ 6,500
                 </span>
               </div>
 
-              <div className="p-2 bg-[#222222]/60 border-l-2 border-[#D4AF37]">
+              <div className="p-2 bg-black/40 border-l-2 border-[#D4AF37]">
                 <span className="text-[9px] font-rajdhani tracking-widest text-zinc-400 uppercase block">
                   0-200 KM/H
                 </span>
@@ -387,9 +383,9 @@ export default function ZondaExperience({
                 </span>
               </div>
 
-              <div className="p-2 bg-[#222222]/60 border-l-2 border-[#D4AF37]">
+              <div className="p-2 bg-black/40 border-l-2 border-[#D4AF37]">
                 <span className="text-[9px] font-rajdhani tracking-widest text-zinc-400 uppercase block">
-                  BRAKING 100-0
+                  100-0 BRAKING
                 </span>
                 <span className="font-orbitron text-sm font-bold text-white">
                   31.5 METERS
@@ -401,14 +397,14 @@ export default function ZondaExperience({
       </div>
 
       {/* ============================================================== */}
-      {/* BOTTOM HUD DOCK: Non-overlapping, Dedicated Telemetry Deck     */}
+      {/* BOTTOM HUD DOCK: Slim, Non-overlapping Floating Deck           */}
       {/* ============================================================== */}
-      <footer className="w-full max-w-7xl mx-auto px-2 pb-2">
-        <div className="w-full bg-[#121212]/90 border border-[#D4AF37]/30 backdrop-blur-md px-4 sm:px-6 py-2.5 rounded-[3px] flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[0_5px_25px_rgba(0,0,0,0.8)]">
+      <footer className="w-full max-w-7xl mx-auto px-2 pb-1">
+        <div className="w-full bg-black/60 border border-[#D4AF37]/30 backdrop-blur-md px-4 sm:px-6 py-2 rounded-[2px] flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[0_5px_25px_rgba(0,0,0,0.8)]">
           {/* Left: 360 Azimuth & Tachometer */}
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
-              <Compass className="w-4 h-4 text-[#D4AF37]" />
+              <Compass className="w-3.5 h-3.5 text-[#D4AF37]" />
               <div className="flex flex-col">
                 <span className="font-rajdhani text-[9px] tracking-widest text-zinc-400 uppercase">
                   ROTATION AZIMUTH
@@ -417,13 +413,13 @@ export default function ZondaExperience({
                   <motion.span>
                     {Math.round(rotationDegrees.get())}°
                   </motion.span>
-                  <span className="text-[10px] text-[#D4AF37]">360° ORBIT</span>
+                  <span className="text-[9px] text-[#D4AF37]">360° ORBIT</span>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-2 pl-4 border-l border-white/10">
-              <Gauge className="w-4 h-4 text-[#D4AF37]" />
+              <Gauge className="w-3.5 h-3.5 text-[#D4AF37]" />
               <div className="flex flex-col">
                 <span className="font-rajdhani text-[9px] tracking-widest text-zinc-400 uppercase">
                   SIMULATED TACHOMETER
@@ -437,10 +433,10 @@ export default function ZondaExperience({
 
           {/* Center: Scroll Sequence Indicator */}
           <div className="hidden md:flex flex-col items-center">
-            <span className="font-rajdhani text-[10px] tracking-[0.25em] text-[#D4AF37] uppercase">
+            <span className="font-rajdhani text-[9px] tracking-[0.25em] text-[#D4AF37] uppercase">
               SCROLL TO ROTATE 360° SEQUENCE
             </span>
-            <div className="w-36 h-[2px] bg-white/10 mt-1 relative overflow-hidden">
+            <div className="w-32 h-[2px] bg-white/10 mt-1 relative overflow-hidden">
               <motion.div
                 className="h-full bg-gradient-to-r from-[#D4AF37] to-[#FFD700]"
                 style={{ width: `${scrollPercent.get()}%` }}
@@ -450,8 +446,8 @@ export default function ZondaExperience({
 
           {/* Right: Active Status */}
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-orbitron text-[11px] font-semibold text-emerald-400 tracking-wider">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="font-orbitron text-[10px] font-semibold text-emerald-400 tracking-wider">
               ALA ACTIVE // CORSA TELEMETRY
             </span>
           </div>

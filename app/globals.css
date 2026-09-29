@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@theme {
+  --color-pagani-black: #1a1a1a;
+  --color-pagani-gold: #D4AF37;
+  --color-bright-gold: #FFD700;
+  --color-carbon-gray: #2a2a2a;
+  --font-orbitron: var(--font-orbitron), sans-serif;
+  --font-rajdhani: var(--font-rajdhani), sans-serif;
+}
+
+:root {
+  --pagani-black: #1a1a1a;
+  --pagani-gold: #D4AF37;
+  --bright-gold: #FFD700;
+  --carbon-gray: #2a2a2a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  overflow-x: hidden;
+}
+
+::selection {
+  background-color: #D4AF37;
+  color: #000000;
+}
+
+/* Custom luxury scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0d0d0d;
+}
+::-webkit-scrollbar-thumb {
+  background: #D4AF37;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #FFD700;
+}
+
+/* Sci-Fi HUD background grid */
+.hud-grid-pattern {
+  background-image: 
+    linear-gradient(to right, rgba(212, 175, 55, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(212, 175, 55, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Futuristic corner borders */
+.hud-bracket {
+  position: relative;
+}
+.hud-bracket::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid #D4AF37;
+  border-left: 2px solid #D4AF37;
+}
+.hud-bracket::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 12px;
+  height: 12px;
+  border-bottom: 2px solid #D4AF37;
+  border-right: 2px solid #D4AF37;
+}
+
+/* Subtle gold glows */
+.gold-text-glow {
+  text-shadow: 0 0 25px rgba(212, 175, 55, 0.5), 0 0 50px rgba(255, 215, 0, 0.25);
+}
+
+.gold-box-glow {
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.15), inset 0 0 20px rgba(212, 175, 55, 0.05);
+}

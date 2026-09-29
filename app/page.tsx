@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { useScroll } from "framer-motion";
+import Lenis from "lenis";
 import Navbar from "@/components/Navbar";
 import ZondaScrollCanvas from "@/components/ZondaScrollCanvas";
 import ZondaExperience from "@/components/ZondaExperience";
@@ -13,7 +14,30 @@ import Footer from "@/components/Footer";
 export default function Home() {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Master Scroll Architecture: Attached strictly to the 600vh scroll track
+  // Initialize luxury smooth inertial scrolling via Lenis
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      touchMultiplier: 1.5,
+    });
+
+    let rafId: number;
+    function raf(time: number) {
+      lenis.raf(time);
+      rafId = requestAnimationFrame(raf);
+    }
+
+    rafId = requestAnimationFrame(raf);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      lenis.destroy();
+    };
+  }, []);
+
+  // Master Scroll Architecture: Bound strictly to the 600vh sequence
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"],
@@ -33,7 +57,6 @@ export default function Home() {
 
       {/* ============================================================== */}
       {/* MASTER SCROLL SEQUENCE (Locked for 600vh)                      */}
-      {/* Prevents user from scrolling past until car rotation completes */}
       {/* ============================================================== */}
       <section
         ref={containerRef}
@@ -49,7 +72,7 @@ export default function Home() {
             className="z-0"
           />
 
-          {/* Foreground HUD: Sci-fi Telemetry & Content Phases */}
+          {/* Foreground HUD: High-End Sci-fi Telemetry & Content Phases */}
           <ZondaExperience
             scrollYProgress={scrollYProgress}
             onInquireClick={handleInquireScroll}

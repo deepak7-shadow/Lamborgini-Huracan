@@ -18,23 +18,26 @@ export default function ZondaScrollCanvas({
 }: ZondaScrollCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imagesRef = useRef<(HTMLImageElement | null)[]>([]);
-  const currentFrameRef = useRef<number>(0);
-  const rafIdRef = useRef<number | null>(null);
+  
+  // High-performance smooth frame interpolation
+  const targetFrameRef = useRef<number>(0);
+  const currentInterpolatedFrameRef = useRef<number>(0);
+  const lastRenderedIndexRef = useRef<number>(-1);
+  const animFrameIdRef = useRef<number | null>(null);
 
   const [loadedCount, setLoadedCount] = useState<number>(0);
-  const [initialFrameReady, setInitialFrameReady] = useState<boolean>(false);
+  const [initialReady, setInitialReady] = useState<boolean>(false);
 
-  // Render a specific frame index onto the high-DPI scaled canvas
-  const renderFrame = useCallback((frameIdx: number) => {
+  // High-DPI draw routine with object-fit contain logic
+  const drawImageOnCanvas = useCallback((frameIdx: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { alpha: false });
     if (!ctx) return;
 
-    // Search for the requested frame, or fallback to the closest loaded frame
-    let imgToDraw: HTMLImageElement | null = imagesRef.current[frameIdx] || null;
+    // Retrieve requested image or find the closest available loaded frame
+    let imgToDraw = imagesRef.current[frameIdx];
     if (!imgToDraw || !imgToDraw.complete || imgToDraw.naturalWidth === 0) {
-      // Find nearest loaded frame
       let minDistance = Infinity;
       let closestIdx = -1;
       for (let i = 0; i < totalFrames; i++) {
@@ -60,160 +63,161 @@ export default function ZondaScrollCanvas({
     const clientHeight = canvas.clientHeight;
     if (clientWidth === 0 || clientHeight === 0) return;
 
+    // 4K / Retina sharpness: clamp DPR between 1.5 and 2.5 for optimal performance & clarity
     const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
-    const targetWidth = Math.floor(clientWidth * dpr);
-    const targetHeight = Math.floor(clientHeight * dpr);
+    const targetW = Math.floor(clientWidth * dpr);
+    const targetH = Math.floor(clientHeight * dpr);
 
-    if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
-      canvas.width = targetWidth;
-      canvas.height = targetHeight;
+    if (canvas.width !== targetW || canvas.height !== targetH) {
+      canvas.width = targetW;
+      canvas.height = targetH;
     }
 
     ctx.save();
-    // Clear background with theme pagani-black
+    // Pagani / Lamborghini luxury obsidian backdrop
     ctx.fillStyle = "#1a1a1a";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Scale to high-DPI coordinates
     ctx.scale(dpr, dpr);
 
-    // Object-fit: contain logic with responsive vertical offset for luxury aesthetic
-    const imgWidth = imgToDraw.naturalWidth;
-    const imgHeight = imgToDraw.naturalHeight;
-    const hRatio = clientWidth / imgWidth;
-    const vRatio = clientHeight / imgHeight;
-    // Scale slightly larger so the supercar dominates the screen with impact
-    const baseRatio = Math.min(hRatio, vRatio);
-    const scaleFactor = clientWidth < 768 ? 1.05 : 1.0;
-    const ratio = baseRatio * scaleFactor;
+    // Object-fit: contain calculation
+    const imgW = imgToDraw.naturalWidth;
+    const imgH = imgToDraw.naturalHeight;
+    const hRatio = clientWidth / imgW;
+    const vRatio = clientHeight / imgH;
+    const ratio = Math.min(hRatio, vRatio);
 
-    const renderWidth = imgWidth * ratio;
-    const renderHeight = imgHeight * ratio;
-    const renderX = (clientWidth - renderWidth) / 2;
-    // Position car with perfect visual balance for HUD overlays
-    const renderY = (clientHeight - renderHeight) / 2 + (clientWidth < 768 ? 15 : 5);
+    const renderW = imgW * ratio;
+    const renderH = imgH * ratio;
+    const renderX = (clientWidth - renderW) / 2;
+    // Optical center slightly adjusted for HUD visibility
+    const renderY = (clientHeight - renderH) / 2;
 
-    // Enable high quality image smoothing
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(imgToDraw, renderX, renderY, renderW, renderH);
 
-    ctx.drawImage(imgToDraw, renderX, renderY, renderWidth, renderHeight);
-
-    // Subtle atmospheric floor vignette/shadow gradient
-    const gradient = ctx.createLinearGradient(0, clientHeight - 80, 0, clientHeight);
-    gradient.addColorStop(0, "rgba(26, 26, 26, 0)");
-    gradient.addColorStop(1, "rgba(26, 26, 26, 0.8)");
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, clientHeight - 80, clientWidth, 80);
+    // Subtle atmospheric bottom vignette
+    const bottomGrad = ctx.createLinearGradient(0, clientHeight - 120, 0, clientHeight);
+    bottomGrad.addColorStop(0, "rgba(26, 26, 26, 0)");
+    bottomGrad.addColorStop(1, "rgba(26, 26, 26, 0.9)");
+    ctx.fillStyle = bottomGrad;
+    ctx.fillRect(0, clientHeight - 120, clientWidth, 120);
 
     ctx.restore();
+    lastRenderedIndexRef.current = frameIdx;
   }, [totalFrames]);
 
-  // Pre-load all 300 images with progressive strategy
+  // Pre-load all 300 sequential frames with prioritized pipeline
   useEffect(() => {
     imagesRef.current = new Array(totalFrames).fill(null);
-    let isCancelled = false;
-    let loaded = 0;
+    let cancelled = false;
+    let count = 0;
 
-    // Priority 1: Load frame 1 immediately
+    // Stage 1: Load First Frame immediately
     const firstImg = new Image();
     firstImg.src = `${imageFolderPath}/1.jpg`;
     firstImg.onload = () => {
-      if (isCancelled) return;
+      if (cancelled) return;
       imagesRef.current[0] = firstImg;
-      loaded++;
-      setLoadedCount(loaded);
-      setInitialFrameReady(true);
-      renderFrame(0);
+      count++;
+      setLoadedCount(count);
+      setInitialReady(true);
+      drawImageOnCanvas(0);
     };
 
-    // Priority 2: Staggered batch loading for all remaining frames
-    const loadBatch = (startIndex: number, batchSize: number) => {
-      if (isCancelled || startIndex >= totalFrames) return;
+    // Stage 2: Staggered batch loading
+    const loadBatch = (start: number, batchSize: number) => {
+      if (cancelled || start >= totalFrames) return;
+      const end = Math.min(start + batchSize, totalFrames);
 
-      const endIndex = Math.min(startIndex + batchSize, totalFrames);
-      for (let i = startIndex; i < endIndex; i++) {
-        if (i === 0) continue; // Already loaded or in-flight
-
+      for (let i = start; i < end; i++) {
+        if (i === 0) continue;
         const img = new Image();
-        // File index is 1-based (1.jpg to 300.jpg)
         img.src = `${imageFolderPath}/${i + 1}.jpg`;
         img.onload = () => {
-          if (isCancelled) return;
+          if (cancelled) return;
           imagesRef.current[i] = img;
-          loaded++;
+          count++;
           setLoadedCount((prev) => prev + 1);
-
-          // If this is the current active frame, render it
-          if (i === currentFrameRef.current) {
-            renderFrame(i);
-          }
         };
         img.onerror = () => {
-          if (isCancelled) return;
-          loaded++;
+          if (cancelled) return;
+          count++;
         };
       }
 
-      // Schedule next batch
-      if (endIndex < totalFrames) {
-        setTimeout(() => {
-          loadBatch(endIndex, batchSize);
-        }, 30);
+      if (end < totalFrames) {
+        setTimeout(() => loadBatch(end, batchSize), 25);
       }
     };
 
-    // Start loading in batches of 15
-    loadBatch(0, 15);
+    loadBatch(0, 16);
 
     return () => {
-      isCancelled = true;
-      if (rafIdRef.current) {
-        cancelAnimationFrame(rafIdRef.current);
+      cancelled = true;
+    };
+  }, [imageFolderPath, totalFrames, drawImageOnCanvas]);
+
+  // Continuous physics-based RAF animation loop:
+  // Smoothly interpolates (LERP) current frame towards target frame
+  useEffect(() => {
+    let active = true;
+
+    const renderLoop = () => {
+      if (!active) return;
+
+      const target = targetFrameRef.current;
+      const current = currentInterpolatedFrameRef.current;
+      const diff = target - current;
+
+      // Exponential smoothing factor for luxury inertial glide
+      if (Math.abs(diff) > 0.01) {
+        currentInterpolatedFrameRef.current += diff * 0.16;
+        const roundedFrame = Math.round(currentInterpolatedFrameRef.current);
+        const clampedFrame = Math.min(totalFrames - 1, Math.max(0, roundedFrame));
+
+        if (clampedFrame !== lastRenderedIndexRef.current) {
+          drawImageOnCanvas(clampedFrame);
+        }
+      }
+
+      animFrameIdRef.current = requestAnimationFrame(renderLoop);
+    };
+
+    animFrameIdRef.current = requestAnimationFrame(renderLoop);
+
+    return () => {
+      active = false;
+      if (animFrameIdRef.current) {
+        cancelAnimationFrame(animFrameIdRef.current);
       }
     };
-  }, [imageFolderPath, totalFrames, renderFrame]);
+  }, [totalFrames, drawImageOnCanvas]);
 
-  // Handle window resizing with High-DPI recalculation
+  // Synchronize target frame from scroll progress
+  useEffect(() => {
+    const unsub = scrollYProgress.on("change", (latest) => {
+      const clamped = Math.min(1, Math.max(0, latest));
+      targetFrameRef.current = clamped * (totalFrames - 1);
+    });
+
+    return () => unsub();
+  }, [scrollYProgress, totalFrames]);
+
+  // Handle window resizing
   useEffect(() => {
     const handleResize = () => {
-      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
-      rafIdRef.current = requestAnimationFrame(() => {
-        renderFrame(currentFrameRef.current);
-      });
+      const current = Math.min(
+        totalFrames - 1,
+        Math.max(0, Math.round(currentInterpolatedFrameRef.current))
+      );
+      drawImageOnCanvas(current);
     };
 
     window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
-    };
-  }, [renderFrame]);
-
-  // Master scroll listener bound to scrollYProgress
-  useEffect(() => {
-    const unsubscribe = scrollYProgress.on("change", (latest) => {
-      // Map 0 -> 1 to frame 0 -> (totalFrames - 1)
-      const clamped = Math.min(1, Math.max(0, latest));
-      const targetFrame = Math.min(
-        totalFrames - 1,
-        Math.max(0, Math.floor(clamped * (totalFrames - 1)))
-      );
-
-      if (targetFrame !== currentFrameRef.current) {
-        currentFrameRef.current = targetFrame;
-        if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
-        rafIdRef.current = requestAnimationFrame(() => {
-          renderFrame(targetFrame);
-        });
-      }
-    });
-
-    return () => {
-      unsubscribe();
-      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
-    };
-  }, [scrollYProgress, totalFrames, renderFrame]);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [drawImageOnCanvas, totalFrames]);
 
   const loadPercent = Math.min(100, Math.round((loadedCount / totalFrames) * 100));
 
@@ -221,31 +225,31 @@ export default function ZondaScrollCanvas({
     <div className={`relative w-full h-full ${className}`}>
       <canvas
         ref={canvasRef}
-        className="w-full h-full block select-none touch-none"
+        className="w-full h-full block select-none pointer-events-none"
         style={{ width: "100%", height: "100%" }}
       />
 
-      {/* Subtle telemetry progress line at bottom of canvas during sequence preload */}
+      {/* Subtle bottom buffer indicator */}
       {loadPercent < 100 && (
-        <div className="absolute bottom-4 left-6 z-20 flex items-center gap-3 pointer-events-none opacity-70">
-          <div className="w-24 h-1 bg-white/10 rounded-full overflow-hidden">
+        <div className="absolute bottom-3 left-4 z-20 flex items-center gap-2 pointer-events-none opacity-60">
+          <div className="w-16 h-1 bg-white/10 rounded-full overflow-hidden">
             <div
               className="h-full bg-[#D4AF37] transition-all duration-200"
               style={{ width: `${loadPercent}%` }}
             />
           </div>
-          <span className="font-rajdhani text-[10px] text-[#D4AF37] tracking-widest font-mono">
-            BUFFERING 360° TELEMETRY: {loadPercent}%
+          <span className="font-mono text-[9px] text-[#D4AF37] tracking-widest">
+            {loadPercent}%
           </span>
         </div>
       )}
 
-      {/* Initial load fallback cover if frame 1 isn't drawn yet */}
-      {!initialFrameReady && (
-        <div className="absolute inset-0 bg-[#1a1a1a] flex flex-col items-center justify-center gap-4 z-30">
-          <div className="w-12 h-12 border-2 border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin" />
-          <div className="font-orbitron text-xs text-[#D4AF37] tracking-[0.3em] uppercase animate-pulse">
-            CALIBRATING LAMBORGHINI HURACÁN
+      {/* Initial load fallback */}
+      {!initialReady && (
+        <div className="absolute inset-0 bg-[#1a1a1a] flex flex-col items-center justify-center gap-3 z-30">
+          <div className="w-10 h-10 border-2 border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin" />
+          <div className="font-orbitron text-xs text-[#D4AF37] tracking-[0.25em] uppercase">
+            SYNCHRONIZING LAMBORGHINI HURACÁN
           </div>
         </div>
       )}
